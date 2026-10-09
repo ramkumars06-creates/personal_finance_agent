@@ -1,0 +1,67 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: finance_db
+    restart: always
+    environment:
+      POSTGRES_DB: personal_finance
+      POSTGRES_USER: finance_user
+      POSTGRES_PASSWORD: finance_secure_password_123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U finance_user -d personal_finance"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: finance_api
+    restart: always
+    environment:
+      DATABASE_URL: postgresql://finance_user:finance_secure_password_123@db:5432/personal_finance
+      SECRET_KEY: production_jwt_secret_key_change_in_real_env_min32bytes
+      ENCRYPTION_KEY: u6N_4kL-p1B9y8W2z3X4v5G6h7J8k9L0m1N2o3P4q5R=
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      NO_LLM_FALLBACK: ${NO_LLM_FALLBACK:-false}
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: finance_frontend
+    restart: always
+    ports:
+      - "8501:8501"
+    environment:
+      BACKEND_API_URL: http://api:8000/api/v1
+    depends_on:
+      - api
+
+  reverse-proxy:
+    image: nginx:alpine
+    container_name: finance_proxy
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - frontend
+      - api
+
+volumes:
+  postgres_data:
