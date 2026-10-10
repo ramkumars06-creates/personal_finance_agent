@@ -3,13 +3,21 @@ Demo Mode API: Instant demo user creation and sample data seeding.
 """
 import uuid
 from datetime import date, timedelta
-from fastapi import APIRouter, Depends, status
-from sqlalchemy.orm import Session
+
 from app.core.database import get_db
-from app.models.db_models import User, UserConsent, Transaction, UserBudget, AnomalyAlert, WeeklySummary
-from app.core.security import hash_password, create_access_token
 from app.core.encryption import encrypt_field
+from app.core.security import create_access_token, hash_password
+from app.models.db_models import (
+    AnomalyAlert,
+    Transaction,
+    User,
+    UserBudget,
+    UserConsent,
+    WeeklySummary,
+)
 from app.schemas.api_schemas import TokenResponse
+from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
 
 router = APIRouter(prefix="/demo", tags=["Demo Mode"])
 

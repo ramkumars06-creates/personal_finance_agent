@@ -1,14 +1,26 @@
 """
 Auth Endpoints: Signup, Login, Token Refresh, Logout, Password Reset.
 """
-from fastapi import APIRouter, Depends, HTTPException, Response, status, Request
-from sqlalchemy.orm import Session
-from app.core.database import get_db
-from app.core.security import hash_password, verify_password, create_access_token, create_refresh_token, decode_token
-from app.core.config import settings
-from app.models.db_models import User, UserConsent, AuditLog
-from app.schemas.api_schemas import SignupRequest, LoginRequest, TokenResponse, UserProfileResponse, UpdateProfileRequest
 from app.api.deps import get_current_user
+from app.core.config import settings
+from app.core.database import get_db
+from app.core.security import (
+    create_access_token,
+    create_refresh_token,
+    decode_token,
+    hash_password,
+    verify_password,
+)
+from app.models.db_models import AuditLog, User, UserConsent
+from app.schemas.api_schemas import (
+    LoginRequest,
+    SignupRequest,
+    TokenResponse,
+    UpdateProfileRequest,
+    UserProfileResponse,
+)
+from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
+from sqlalchemy.orm import Session
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 

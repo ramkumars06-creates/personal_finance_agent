@@ -1,8 +1,7 @@
 """
 Configuration management using Pydantic Settings v2.
 """
-from typing import List, Optional
-from pydantic import Field
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -26,7 +25,7 @@ class Settings(BaseSettings):
     ENCRYPTION_KEY: str = "u6N_4kL-p1B9y8W2z3X4v5G6h7J8k9L0m1N2o3P4q5R="
     
     # LLM Settings
-    GEMINI_API_KEY: Optional[str] = None
+    GEMINI_API_KEY: str | None = None
     GEMINI_MODEL: str = "gemini-1.5-flash"
     NO_LLM_FALLBACK: bool = False
     DAILY_LLM_QUOTA_PER_USER: int = 50
@@ -37,7 +36,7 @@ class Settings(BaseSettings):
     MAX_UPLOAD_ROWS: int = 10000
     
     # CORS
-    ALLOWED_ORIGINS: List[str] = [
+    ALLOWED_ORIGINS: list[str] = [
         "http://localhost:8501",
         "http://127.0.0.1:8501",
         "http://localhost:3000",

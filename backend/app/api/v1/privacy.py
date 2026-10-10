@@ -1,16 +1,25 @@
 """
 Privacy & DPDP Act 2023 Compliance Endpoints: Data Export, Account Deletion, Consent Management.
 """
-from typing import Any, Dict
-from datetime import datetime, timezone
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
-from app.core.database import get_db
-from app.models.db_models import User, UserConsent, Transaction, UserBudget, AnomalyAlert, WeeklySummary, AuditLog
-from app.schemas.api_schemas import ConsentResponse, UpdateConsentRequest
-from app.repositories.user_scoped_repo import UserScopedRepository
-from app.core.encryption import decrypt_field
+from datetime import UTC, datetime
+from typing import Any
+
 from app.api.deps import get_current_user
+from app.core.database import get_db
+from app.core.encryption import decrypt_field
+from app.models.db_models import (
+    AnomalyAlert,
+    AuditLog,
+    Transaction,
+    User,
+    UserBudget,
+    UserConsent,
+    WeeklySummary,
+)
+from app.repositories.user_scoped_repo import UserScopedRepository
+from app.schemas.api_schemas import ConsentResponse, UpdateConsentRequest
+from fastapi import APIRouter, Depends, status
+from sqlalchemy.orm import Session
 
 router = APIRouter(prefix="/privacy", tags=["Privacy & Consent"])
 
@@ -50,7 +59,7 @@ def update_consent(
     consent.llm_processing_consent = req.llm_processing_consent
 
     if not req.transaction_storage_consent or not req.llm_processing_consent:
-        consent.consent_withdrawn_at = datetime.now(timezone.utc)
+        consent.consent_withdrawn_at = datetime.now(UTC)
     else:
         consent.consent_withdrawn_at = None
 
@@ -67,7 +76,7 @@ def update_consent(
 
 
 @router.get("/export")
-def export_user_data(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> Dict[str, Any]:
+def export_user_data(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> dict[str, Any]:
     """
     DPDP Act Right to Data Portability: Export complete user records as structured JSON.
     Decrypts sensitive fields at rest for the rightful account owner.

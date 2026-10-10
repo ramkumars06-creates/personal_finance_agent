@@ -1,10 +1,11 @@
 """
 Database connection, session management, and SQLAlchemy base configuration.
 """
-from typing import Generator
-from sqlalchemy import create_engine, text
-from sqlalchemy.orm import declarative_base, sessionmaker, Session
+from collections.abc import Generator
+
 from app.core.config import settings
+from sqlalchemy import create_engine, text
+from sqlalchemy.orm import Session, declarative_base, sessionmaker
 
 # Engine setup
 engine_kwargs = {}

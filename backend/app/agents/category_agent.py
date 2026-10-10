@@ -1,10 +1,11 @@
 """
 2. Category Agent: Hybrid classification via User Rules -> Keyword Engine -> LLM Gateway.
 """
-from typing import Dict, Any, List, Optional, Tuple
-from sqlalchemy.orm import Session
-from app.repositories.user_scoped_repo import CategoryRuleRepository
+from typing import Any
+
 from app.llm.gateway import LLMGateway
+from app.repositories.user_scoped_repo import CategoryRuleRepository
+from sqlalchemy.orm import Session
 
 
 class CategoryAgent:
@@ -16,15 +17,15 @@ class CategoryAgent:
         "education", "other"
     ]
 
-    def __init__(self, llm_gateway: Optional[LLMGateway] = None):
+    def __init__(self, llm_gateway: LLMGateway | None = None):
         self.llm = llm_gateway or LLMGateway()
 
     def categorize_transactions(
         self,
-        transactions: List[Dict[str, Any]],
-        db_session: Optional[Session] = None,
-        user_id: Optional[str] = None
-    ) -> Tuple[List[Dict[str, Any]], Dict[str, int]]:
+        transactions: list[dict[str, Any]],
+        db_session: Session | None = None,
+        user_id: str | None = None
+    ) -> tuple[list[dict[str, Any]], dict[str, int]]:
         """
         Categorize a batch of normalized transactions.
         """

@@ -1,7 +1,8 @@
 """
 5. Weekly Advisor Agent: Python-calculated budget recommendations coupled with LLM explanation rephrasing.
 """
-from typing import Dict, Any, List, Optional
+from typing import Any
+
 from app.llm.gateway import LLMGateway
 
 
@@ -10,14 +11,14 @@ class AdvisorAgent:
 
     DISCLAIMER = "This tool supports financial awareness and planning; it is not a replacement for a financial adviser."
 
-    def __init__(self, llm_gateway: Optional[LLMGateway] = None):
+    def __init__(self, llm_gateway: LLMGateway | None = None):
         self.llm = llm_gateway or LLMGateway()
 
     def generate_weekly_advice(
         self,
-        budget_analysis: Dict[str, Any],
-        savings_goal: Optional[float] = None
-    ) -> Dict[str, Any]:
+        budget_analysis: dict[str, Any],
+        savings_goal: float | None = None
+    ) -> dict[str, Any]:
         """
         Generate recommendations (computed 100% in Python) and plain-language summary via LLM.
         """

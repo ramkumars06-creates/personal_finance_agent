@@ -1,11 +1,12 @@
 """
 1. Ingestion Agent: Validates, normalizes, deduplicates, and parses CSV/Excel file uploads.
 """
-import io
 import hashlib
-import pandas as pd
-from typing import Dict, Any, List, Tuple, Optional
+import io
 from datetime import datetime
+from typing import Any
+
+import pandas as pd
 
 
 class IngestionAgent:
@@ -14,7 +15,7 @@ class IngestionAgent:
     MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024  # 5MB
     MAX_ROWS = 10000
 
-    def parse_csv_file(self, file_bytes: bytes, filename: str, user_id: str) -> Tuple[List[Dict[str, Any]], Dict[str, Any]]:
+    def parse_csv_file(self, file_bytes: bytes, filename: str, user_id: str) -> tuple[list[dict[str, Any]], dict[str, Any]]:
         """
         Parse CSV file bytes into clean normalized transaction records.
         """
@@ -27,7 +28,7 @@ class IngestionAgent:
             try:
                 df = pd.read_excel(io.BytesIO(file_bytes))
             except Exception as e:
-                raise ValueError(f"Could not parse file as CSV or Excel: {str(e)}")
+                raise ValueError(f"Could not parse file as CSV or Excel: {e!s}")
 
         if len(df) > self.MAX_ROWS:
             raise ValueError(f"File exceeds maximum allowed rows ({self.MAX_ROWS}).")
@@ -92,7 +93,7 @@ class IngestionAgent:
 
         return normalized_records, stats
 
-    def _detect_columns(self, df: pd.DataFrame) -> Dict[str, str]:
+    def _detect_columns(self, df: pd.DataFrame) -> dict[str, str]:
         """Auto-detect columns from common bank statement headers."""
         cols = {c.lower().strip(): c for c in df.columns}
         mapping = {}
@@ -129,7 +130,7 @@ class IngestionAgent:
 
         return mapping
 
-    def _parse_date(self, val: Any) -> Tuple[Optional[str], bool]:
+    def _parse_date(self, val: Any) -> tuple[str | None, bool]:
         """Parse ambiguous date string safely without throwing exceptions."""
         if pd.isna(val) or not val:
             return None, True
@@ -149,7 +150,7 @@ class IngestionAgent:
         except Exception:
             return None, True
 
-    def _parse_amount(self, amt_val: Any, type_val: Any) -> Tuple[Optional[float], str]:
+    def _parse_amount(self, amt_val: Any, type_val: Any) -> tuple[float | None, str]:
         """Parse numeric amount and determine if debit, credit, or refund."""
         if pd.isna(amt_val):
             return None, "debit"
@@ -175,7 +176,7 @@ class IngestionAgent:
 
         return amt, txn_type
 
-    def _clean_merchant(self, desc: str) -> Tuple[str, bool]:
+    def _clean_merchant(self, desc: str) -> tuple[str, bool]:
         """Clean noisy merchant descriptions (e.g. SWIGGY*ORDER 8843 -> swiggy)."""
         if not desc or desc.lower() in ["nan", "none", "null"]:
             return "Unknown Merchant", True
@@ -183,8 +184,7 @@ class IngestionAgent:
         clean = desc.upper()
         # Remove common bank transaction prefixes
         for prefix in ["UPI/", "POS/", "IMPS/", "NEFT/", "ACH/", "CARD/"]:
-            if clean.startswith(prefix):
-                clean = clean[len(prefix):]
+            clean = clean.removeprefix(prefix)
         
         # Remove reference numbers / trailing digits
         clean = pd.Series([clean]).str.replace(r'\*\d+|\d{6,}', '', regex=True).iloc[0]

@@ -3,8 +3,9 @@ Field-level encryption and masking utilities for sensitive PII and financial fie
 """
 import base64
 import hashlib
-from cryptography.fernet import Fernet
+
 from app.core.config import settings
+from cryptography.fernet import Fernet
 
 
 def _get_fernet() -> Fernet:

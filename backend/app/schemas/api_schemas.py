@@ -1,10 +1,9 @@
 """
 Pydantic v2 validation and serialization schemas for REST API endpoints.
 """
-from typing import List, Optional, Dict, Any
 from datetime import date, datetime
-from decimal import Decimal
-from pydantic import BaseModel, EmailStr, Field, ConfigDict
+
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 
 # Auth & User Schemas
@@ -36,24 +35,24 @@ class UserProfileResponse(BaseModel):
     is_verified: bool
     age_confirmed: bool
     currency_symbol: str
-    monthly_income: Optional[float]
-    savings_goal: Optional[float]
+    monthly_income: float | None
+    savings_goal: float | None
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
 
 
 class UpdateProfileRequest(BaseModel):
-    monthly_income: Optional[float] = None
-    savings_goal: Optional[float] = None
-    currency_symbol: Optional[str] = "Rs."
+    monthly_income: float | None = None
+    savings_goal: float | None = None
+    currency_symbol: str | None = "Rs."
 
 
 class ConsentResponse(BaseModel):
     transaction_storage_consent: bool
     llm_processing_consent: bool
-    consent_given_at: Optional[datetime]
-    consent_withdrawn_at: Optional[datetime]
+    consent_given_at: datetime | None
+    consent_withdrawn_at: datetime | None
 
 
 class UpdateConsentRequest(BaseModel):
@@ -89,11 +88,11 @@ class AnomalyAlertResponse(BaseModel):
     alert_type: str
     severity: str
     plain_language_reason: str
-    signals_fired: List[str]
+    signals_fired: list[str]
     user_feedback: str
     created_at: datetime
-    merchant: Optional[str] = None
-    amount: Optional[float] = None
+    merchant: str | None = None
+    amount: float | None = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -130,8 +129,8 @@ class WeeklySummaryResponse(BaseModel):
     week_start_date: date
     week_end_date: date
     total_spend: float
-    category_breakdown: Dict[str, float]
-    recommendations: List[RecommendationItem]
+    category_breakdown: dict[str, float]
+    recommendations: list[RecommendationItem]
     llm_explanation: str
     is_accepted: bool
     disclaimer: str = "This tool supports financial awareness and planning; it is not a replacement for a financial adviser."
@@ -145,7 +144,7 @@ class UploadSummaryResponse(BaseModel):
     total_rows_parsed: int
     deduplicated_count: int
     uncertain_count: int
-    categories_assigned: Dict[str, int]
+    categories_assigned: dict[str, int]
     anomalies_flagged: int
 
 
@@ -160,7 +159,7 @@ class AgentTraceStep(BaseModel):
 class AgentTraceResponse(BaseModel):
     execution_id: str
     run_type: str
-    steps: List[AgentTraceStep]
+    steps: list[AgentTraceStep]
     total_duration_ms: float
     fallback_mode_used: bool
 

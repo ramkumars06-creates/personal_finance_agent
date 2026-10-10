@@ -2,14 +2,17 @@
 LLM Gateway abstraction layer providing Gemini API integration with prompt injection defenses,
 output validation, and deterministic rule-based fallback mode.
 """
-import re
 import json
 import logging
-from typing import Dict, Any, Optional
+import re
+from typing import Any
+
 from app.core.config import settings
 from app.llm.prompt_templates import (
-    CATEGORIZATION_SYSTEM_PROMPT, CATEGORIZATION_USER_PROMPT,
-    WEEKLY_EXPLANATION_SYSTEM_PROMPT, WEEKLY_EXPLANATION_USER_PROMPT
+    CATEGORIZATION_SYSTEM_PROMPT,
+    CATEGORIZATION_USER_PROMPT,
+    WEEKLY_EXPLANATION_SYSTEM_PROMPT,
+    WEEKLY_EXPLANATION_USER_PROMPT,
 )
 
 logger = logging.getLogger("finance_agent.llm_gateway")
@@ -51,7 +54,7 @@ class LLMGateway:
                 logger.warning(f"Failed to configure Google GenAI client: {e}")
                 self.force_fallback = True
 
-    def categorize_merchant(self, raw_merchant: str) -> Dict[str, Any]:
+    def categorize_merchant(self, raw_merchant: str) -> dict[str, Any]:
         """
         Categorize a merchant string via LLM, falling back to rule engine if LLM fails or is disabled.
         """
@@ -94,7 +97,7 @@ class LLMGateway:
         top_category_spend: float,
         overbudget_summary: str,
         recommendations_text: str
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Generate plain-language weekly explanation. Validates that no invented numbers appear.
         """
@@ -140,7 +143,7 @@ class LLMGateway:
                 total_spend, top_category, top_category_spend, overbudget_summary, recommendations_text
             )
 
-    def _fallback_categorize(self, merchant: str) -> Dict[str, Any]:
+    def _fallback_categorize(self, merchant: str) -> dict[str, Any]:
         """Deterministic keyword matching for offline fallback categorization."""
         m = merchant.lower()
         if any(k in m for k in ["swiggy", "zomato", "restaurant", "cafe", "diner", "food"]):
@@ -178,7 +181,7 @@ class LLMGateway:
         top_category_spend: float,
         overbudget_summary: str,
         recommendations_text: str
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Deterministic template builder for weekly explanation."""
         disclaimer = "This tool supports financial awareness and planning; it is not a replacement for a financial adviser."
         

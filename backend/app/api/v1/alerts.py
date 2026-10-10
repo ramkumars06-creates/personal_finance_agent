@@ -1,19 +1,19 @@
 """
 Anomaly Alerts API: List Alerts, Explain Signals, Capture User Feedback.
 """
-from typing import List
+
+from app.api.deps import get_current_user
+from app.core.database import get_db
+from app.models.db_models import AnomalyAlert, Transaction, User
+from app.repositories.user_scoped_repo import UserScopedRepository
+from app.schemas.api_schemas import AlertFeedbackRequest, AnomalyAlertResponse
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from app.core.database import get_db
-from app.models.db_models import User, AnomalyAlert, Transaction
-from app.schemas.api_schemas import AnomalyAlertResponse, AlertFeedbackRequest
-from app.repositories.user_scoped_repo import UserScopedRepository
-from app.api.deps import get_current_user
 
 router = APIRouter(prefix="/alerts", tags=["Anomaly Alerts"])
 
 
-@router.get("", response_model=List[AnomalyAlertResponse])
+@router.get("", response_model=list[AnomalyAlertResponse])
 def get_anomaly_alerts(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     """Fetch user anomaly alerts with plain-language reasons and signal lists."""
     repo = UserScopedRepository(AnomalyAlert, db, current_user.id)

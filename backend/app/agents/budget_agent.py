@@ -1,8 +1,7 @@
 """
 4. Budget Agent: Manages weekly targets, actual spend accumulation, variance computation, and overspend detection.
 """
-from typing import Dict, Any, List, Optional
-from decimal import Decimal
+from typing import Any
 
 
 class BudgetAgent:
@@ -22,10 +21,10 @@ class BudgetAgent:
 
     def compute_budget_vs_actual(
         self,
-        weekly_transactions: List[Dict[str, Any]],
-        user_budgets: List[Dict[str, Any]],
-        monthly_income: Optional[float] = None
-    ) -> Dict[str, Any]:
+        weekly_transactions: list[dict[str, Any]],
+        user_budgets: list[dict[str, Any]],
+        monthly_income: float | None = None
+    ) -> dict[str, Any]:
         """
         Compute target vs actual spend per category for the week.
         """
@@ -39,7 +38,7 @@ class BudgetAgent:
                 target_map[cat] = round(weekly_income * weight, 2)
 
         # Accumulate actual weekly spend per category
-        actual_map: Dict[str, float] = {cat: 0.0 for cat in self.DEFAULT_WEEKLY_WEIGHTS.keys()}
+        actual_map: dict[str, float] = {cat: 0.0 for cat in self.DEFAULT_WEEKLY_WEIGHTS.keys()}
         total_weekly_spend = 0.0
 
         for txn in weekly_transactions:

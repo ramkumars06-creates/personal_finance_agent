@@ -1,20 +1,20 @@
 """
 Budgets API: Category Target Definition and Budget-vs-Actual Tracking.
 """
-from typing import List
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
-from app.core.database import get_db
-from app.models.db_models import User, UserBudget, Transaction
-from app.schemas.api_schemas import BudgetVsActualResponse, BudgetTargetItem
-from app.repositories.user_scoped_repo import BudgetRepository, TransactionRepository
+
 from app.agents.budget_agent import BudgetAgent
 from app.api.deps import get_current_user
+from app.core.database import get_db
+from app.models.db_models import User, UserBudget
+from app.repositories.user_scoped_repo import BudgetRepository, TransactionRepository
+from app.schemas.api_schemas import BudgetTargetItem, BudgetVsActualResponse
+from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
 
 router = APIRouter(prefix="/budgets", tags=["Budgets"])
 
 
-@router.get("", response_model=List[BudgetVsActualResponse])
+@router.get("", response_model=list[BudgetVsActualResponse])
 def get_budget_vs_actual(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     """Fetch weekly target budgets vs actual spending breakdown."""
     budget_repo = BudgetRepository(db, current_user.id)
@@ -41,9 +41,9 @@ def get_budget_vs_actual(current_user: User = Depends(get_current_user), db: Ses
     return results
 
 
-@router.put("", response_model=List[BudgetTargetItem])
+@router.put("", response_model=list[BudgetTargetItem])
 def update_budgets(
-    targets: List[BudgetTargetItem],
+    targets: list[BudgetTargetItem],
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):

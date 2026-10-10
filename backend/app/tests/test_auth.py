@@ -1,8 +1,12 @@
 """
 Auth Unit & Integration Tests: Signup, Login, Password Hashing, JWT Tokens.
 """
-import pytest
-from app.core.security import hash_password, verify_password, create_access_token, decode_token
+from app.core.security import (
+    create_access_token,
+    decode_token,
+    hash_password,
+    verify_password,
+)
 
 
 def test_password_hashing():
