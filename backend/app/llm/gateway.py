@@ -45,11 +45,11 @@ class LLMGateway:
         self.force_fallback = settings.NO_LLM_FALLBACK or not self.api_key or not HAS_GENAI
         
         if HAS_GENAI and self.api_key:
-            try:
-                genai.configure(api_key=self.api_key)
-            except Exception as e:
-                logger.warning(f"Failed to configure Google GenAI client: {e}")
-                self.force_fallback = True
+    try:
+        genai.configure(api_key=self.api_key)
+    except (ValueError, AttributeError) as e:
+        logger.warning(f"Failed to configure Google GenAI client: {e}")
+        self.force_fallback = True
 
     def categorize_merchant(self, raw_merchant: str) -> Dict[str, Any]:
         """
