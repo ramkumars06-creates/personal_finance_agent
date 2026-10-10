@@ -94,7 +94,7 @@ async def upload_bank_statement(
     # Run LangGraph Pipeline
     try:
         final_state = finance_pipeline.invoke(initial_state)
-    except Exception as e:
+    except (ValueError, TypeError, KeyError, RuntimeError) as e:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail=f"Error executing multi-agent pipeline: {e!s}"

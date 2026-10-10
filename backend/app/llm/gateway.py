@@ -75,7 +75,18 @@ class LLMGateway:
 
             parsed = json.loads(response.text)
             category = parsed.get("category", "").lower()
-            valid_cats = ["food", "groceries", "transport", "bills", "rent", "shopping", "entertainment", "health", "education", "other"]
+            valid_cats = [
+                "food",
+                "groceries",
+                "transport",
+                "bills",
+                "rent",
+                "shopping",
+                "entertainment",
+                "health",
+                "education",
+                "other",
+            ]
 
             if category not in valid_cats:
                 category = "other"
@@ -84,9 +95,9 @@ class LLMGateway:
                 "category": category,
                 "confidence": float(parsed.get("confidence", 0.7)),
                 "reason": parsed.get("reason", "AI categorized merchant."),
-                "method": "llm"
+                "method": "llm",
             }
-        except Exception as e:
+        except (json.JSONDecodeError, KeyError, ValueError, TypeError) as e:
             logger.warning(f"LLM Categorization failed for '{sanitized_merchant}': {e}. Using fallback.")
             return self._fallback_categorize(sanitized_merchant)
 
