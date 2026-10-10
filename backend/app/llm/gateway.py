@@ -134,11 +134,9 @@ class LLMGateway:
                 "disclaimer": disclaimer,
                 "method": "llm"
             }
-        except Exception as e:
-            logger.warning(f"LLM Weekly Summary generation failed: {e}. Using template fallback.")
-            return self._fallback_weekly_explanation(
-                total_spend, top_category, top_category_spend, overbudget_summary, recommendations_text
-            )
+        except (json.JSONDecodeError, KeyError, ValueError) as e:
+    logger.warning(f"LLM Weekly Summary generation failed: {e}. Using template fallback.")
+    return self._fallback_weekly_explanation(...)
 
     def _fallback_categorize(self, merchant: str) -> Dict[str, Any]:
         """Deterministic keyword matching for offline fallback categorization."""
