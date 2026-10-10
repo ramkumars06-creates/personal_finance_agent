@@ -60,8 +60,8 @@ def health_check():
 def readiness_check():
     """Readiness probe checking database connectivity."""
     try:
-        with engine.connect() as conn:
-            conn.execute(Base.metadata.tables['users'].select().limit(1))
+     with engine.connect() as conn:
+        conn.execute(Base.metadata.tables['users'].select().limit(1))
         return {"status": "ready", "database": "connected"}
-    except Exception as e:
+    except (sqlalchemy.exc.OperationalError, KeyError) as e:
         return {"status": "degraded", "database": str(e)}
