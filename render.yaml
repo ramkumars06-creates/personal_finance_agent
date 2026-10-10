@@ -1,0 +1,39 @@
+services:
+  # 1. FastAPI Backend API
+  - type: web
+    name: personal-finance-backend
+    env: python
+    region: oregon
+    plan: free
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT --app-dir backend
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: ENVIRONMENT
+        value: production
+      - key: DEBUG
+        value: false
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ENCRYPTION_KEY
+        value: u6N_4kL-p1B9y8W2z3X4v5G6h7J8k9L0m1N2o3P4q5R=
+      - key: DATABASE_URL
+        value: sqlite:///./personal_finance.db
+
+  # 2. Streamlit Frontend UI
+  - type: web
+    name: personal-finance-frontend
+    env: python
+    region: oregon
+    plan: free
+    buildCommand: pip install -r frontend/requirements.txt
+    startCommand: streamlit run frontend/app.py --server.port $PORT --server.address 0.0.0.0
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: BACKEND_API_URL
+        fromService:
+          type: web
+          name: personal-finance-backend
+          property: host
