@@ -46,20 +46,20 @@ class LLMGateway:
         self.api_key = settings.GEMINI_API_KEY
         self.model_name = settings.GEMINI_MODEL
         self.force_fallback = settings.NO_LLM_FALLBACK or not self.api_key or not HAS_GENAI
-        
+
         if HAS_GENAI and self.api_key:
-    try:
-        genai.configure(api_key=self.api_key)
-    except (ValueError, AttributeError) as e:
-        logger.warning(f"Failed to configure Google GenAI client: {e}")
-        self.force_fallback = True
+            try:
+                genai.configure(api_key=self.api_key)
+            except (ValueError, AttributeError) as e:
+                logger.warning(f"Failed to configure Google GenAI client: {e}")
+                self.force_fallback = True
 
     def categorize_merchant(self, raw_merchant: str) -> dict[str, Any]:
         """
         Categorize a merchant string via LLM, falling back to rule engine if LLM fails or is disabled.
         """
         sanitized_merchant = sanitize_untrusted_text(raw_merchant)
-        
+
         if self.force_fallback:
             return self._fallback_categorize(sanitized_merchant)
 
@@ -72,11 +72,11 @@ class LLMGateway:
                 full_prompt,
                 generation_config={"response_mime_type": "application/json"}
             )
-            
+
             parsed = json.loads(response.text)
             category = parsed.get("category", "").lower()
             valid_cats = ["food", "groceries", "transport", "bills", "rent", "shopping", "entertainment", "health", "education", "other"]
-            
+
             if category not in valid_cats:
                 category = "other"
 
@@ -121,7 +121,7 @@ class LLMGateway:
                 full_prompt,
                 generation_config={"response_mime_type": "application/json"}
             )
-            
+
             parsed = json.loads(response.text)
             explanation = parsed.get("explanation", "")
             key_takeaway = parsed.get("key_takeaway", "")
@@ -137,9 +137,11 @@ class LLMGateway:
                 "disclaimer": disclaimer,
                 "method": "llm"
             }
-        except (json.JSONDecodeError, KeyError, ValueError) as e:
-    logger.warning(f"LLM Weekly Summary generation failed: {e}. Using template fallback.")
-    return self._fallback_weekly_explanation(...)
+        except (json.JSONDecodeError, KeyError, ValueError, TypeError) as e:
+            logger.warning(f"LLM Weekly Summary generation failed: {e}. Using template fallback.")
+            return self._fallback_weekly_explanation(
+                total_spend, top_category, top_category_spend, overbudget_summary, recommendations_text
+            )
 
     def _fallback_categorize(self, merchant: str) -> dict[str, Any]:
         """Deterministic keyword matching for offline fallback categorization."""

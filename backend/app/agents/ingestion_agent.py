@@ -22,23 +22,13 @@ class IngestionAgent:
         if len(file_bytes) > self.MAX_FILE_SIZE_BYTES:
             raise ValueError("File exceeds maximum size limit of 5MB.")
 
-<<<<<<< HEAD
         try:
             df = pd.read_csv(io.BytesIO(file_bytes))
-        except Exception:
+        except (pd.errors.ParserError, pd.errors.EmptyDataError):
             try:
                 df = pd.read_excel(io.BytesIO(file_bytes))
-            except Exception as e:
-                raise ValueError(f"Could not parse file as CSV or Excel: {e!s}")
-=======
-       try:
-    df = pd.read_csv(io.BytesIO(file_bytes))
-except (pd.errors.ParserError, pd.errors.EmptyDataError) as e:
-    try:
-        df = pd.read_excel(io.BytesIO(file_bytes))
-    except (ValueError, ImportError) as excel_err:
-        raise ValueError(f"Could not parse file as CSV or Excel: {excel_err!s}")
->>>>>>> 81df25a01e15f844f8c86a463039d5972e231f1e
+            except (ValueError, ImportError, TypeError) as excel_err:
+                raise ValueError(f"Could not parse file as CSV or Excel: {excel_err!s}") from excel_err
 
         if len(df) > self.MAX_ROWS:
             raise ValueError(f"File exceeds maximum allowed rows ({self.MAX_ROWS}).")

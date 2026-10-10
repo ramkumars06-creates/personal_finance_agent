@@ -31,12 +31,12 @@ def decrypt_field(ciphertext: str) -> str:
     if not ciphertext:
         return ""
     try:
-    fernet = _get_fernet()
-    decrypted_bytes = fernet.decrypt(ciphertext.encode('utf-8'))
-    return decrypted_bytes.decode('utf-8')
-except (ValueError, TypeError):
-    # Fallback if text is unencrypted (legacy or test data)
-    return ciphertext
+        fernet = _get_fernet()
+        decrypted_bytes = fernet.decrypt(ciphertext.encode('utf-8'))
+        return decrypted_bytes.decode('utf-8')
+    except (ValueError, TypeError):
+        # Fallback if text is unencrypted (legacy or test data)
+        return ciphertext
 
 
 def mask_account_number(account_num: str) -> str:

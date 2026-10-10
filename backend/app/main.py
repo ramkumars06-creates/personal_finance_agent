@@ -2,6 +2,8 @@
 FastAPI Application Entry Point.
 Initializes middleware, routers, rate limiting, and health check routes.
 """
+import sqlalchemy
+
 from app.api.v1 import (
     admin,
     advisor,
@@ -77,5 +79,6 @@ def readiness_check():
      with engine.connect() as conn:
         conn.execute(Base.metadata.tables['users'].select().limit(1))
         return {"status": "ready", "database": "connected"}
+     import sqlalchemy
     except (sqlalchemy.exc.OperationalError, KeyError) as e:
         return {"status": "degraded", "database": str(e)}
