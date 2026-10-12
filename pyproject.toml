@@ -1,0 +1,34 @@
+[tool.ruff]
+target-version = "py311"
+line-length = 120
+exclude = [
+    "venv",
+    ".venv",
+    "__pycache__",
+    "build",
+    "dist",
+    "data",
+]
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+]
+ignore = [
+    "E501", # line too long
+    "B008", # function call in argument defaults (FastAPI Depends)
+    "F401", # unused imports
+    "F841", # unused variables
+    "W291", # trailing whitespace
+    "W292", # no newline at end of file
+    "W293", # blank line contains whitespace
+]
+
+[tool.mypy]
+python_version = "3.11"
+ignore_missing_imports = true
+warn_unused_ignores = false
+follow_imports = "skip"
+mypy_path = "backend"

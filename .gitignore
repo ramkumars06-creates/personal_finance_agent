@@ -1,0 +1,12 @@
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env
+personal_finance.db
+.pytest_cache/
+*.egg-info/
+dist/
+build/
+.DS_Store
