@@ -1,26 +1,23 @@
 """
 Transactions API: List, Search, Filter, and User Category Correction.
 """
-
-from app.api.deps import get_current_user
-from app.core.database import get_db
-from app.core.encryption import decrypt_field
-from app.models.db_models import CategoryRule, User
-from app.repositories.user_scoped_repo import (
-    CategoryRuleRepository,
-    TransactionRepository,
-)
-from app.schemas.api_schemas import CategoryCorrectionRequest, TransactionResponse
+from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
+from app.core.database import get_db
+from app.models.db_models import User, Transaction, CategoryRule
+from app.schemas.api_schemas import TransactionResponse, CategoryCorrectionRequest
+from app.repositories.user_scoped_repo import TransactionRepository, CategoryRuleRepository
+from app.core.encryption import decrypt_field
+from app.api.deps import get_current_user
 
 router = APIRouter(prefix="/transactions", tags=["Transactions"])
 
 
-@router.get("", response_model=list[TransactionResponse])
+@router.get("", response_model=List[TransactionResponse])
 def get_transactions(
-    category: str | None = None,
-    search: str | None = None,
+    category: Optional[str] = None,
+    search: Optional[str] = None,
     limit: int = Query(100, ge=1, le=1000),
     offset: int = Query(0, ge=0),
     current_user: User = Depends(get_current_user),

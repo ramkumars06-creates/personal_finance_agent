@@ -1,21 +1,17 @@
 """
 Weekly Advisor API: Weekly Summaries, Recommendations, and Acceptance Actions.
 """
+from typing import Optional
 from datetime import date
-
-from app.agents.advisor_agent import AdvisorAgent
-from app.agents.budget_agent import BudgetAgent
-from app.api.deps import get_current_user
-from app.core.database import get_db
-from app.models.db_models import User, WeeklySummary
-from app.repositories.user_scoped_repo import (
-    BudgetRepository,
-    TransactionRepository,
-    UserScopedRepository,
-)
-from app.schemas.api_schemas import RecommendationItem, WeeklySummaryResponse
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+from app.core.database import get_db
+from app.models.db_models import User, WeeklySummary, Transaction, UserBudget
+from app.schemas.api_schemas import WeeklySummaryResponse, RecommendationItem
+from app.repositories.user_scoped_repo import UserScopedRepository, TransactionRepository, BudgetRepository
+from app.agents.budget_agent import BudgetAgent
+from app.agents.advisor_agent import AdvisorAgent
+from app.api.deps import get_current_user
 
 router = APIRouter(prefix="/advisor", tags=["Weekly Advisor"])
 

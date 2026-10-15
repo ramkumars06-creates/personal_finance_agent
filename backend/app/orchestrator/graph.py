@@ -1,15 +1,15 @@
 """
 LangGraph Orchestrator: Multi-agent graph flow managing shared state, execution timing, and pipeline tracing.
 """
+import uuid
 import time
-from typing import Any, TypedDict
-
-from app.agents.advisor_agent import AdvisorAgent
+from typing import TypedDict, List, Dict, Any, Optional
+from langgraph.graph import StateGraph, END
+from app.agents.ingestion_agent import IngestionAgent
+from app.agents.category_agent import CategoryAgent
 from app.agents.anomaly_agent import AnomalyAgent
 from app.agents.budget_agent import BudgetAgent
-from app.agents.category_agent import CategoryAgent
-from app.agents.ingestion_agent import IngestionAgent
-from langgraph.graph import END, StateGraph
+from app.agents.advisor_agent import AdvisorAgent
 
 
 class AgentState(TypedDict):
@@ -17,30 +17,30 @@ class AgentState(TypedDict):
     user_id: str
     execution_id: str
     run_type: str  # "upload" | "weekly"
-    raw_file_bytes: bytes | None
-    filename: str | None
-    input_transactions: list[dict[str, Any]] | None
-    historical_transactions: list[dict[str, Any]] | None
-    user_budgets: list[dict[str, Any]] | None
-    monthly_income: float | None
-    savings_goal: float | None
+    raw_file_bytes: Optional[bytes]
+    filename: Optional[str]
+    input_transactions: Optional[List[Dict[str, Any]]]
+    historical_transactions: Optional[List[Dict[str, Any]]]
+    user_budgets: Optional[List[Dict[str, Any]]]
+    monthly_income: Optional[float]
+    savings_goal: Optional[float]
     
     # Node Outputs
-    parsed_transactions: list[dict[str, Any]]
-    ingestion_stats: dict[str, Any]
-    categorized_transactions: list[dict[str, Any]]
-    categorization_stats: dict[str, int]
-    anomalies_detected: list[dict[str, Any]]
-    budget_analysis: dict[str, Any]
-    weekly_advice: dict[str, Any]
+    parsed_transactions: List[Dict[str, Any]]
+    ingestion_stats: Dict[str, Any]
+    categorized_transactions: List[Dict[str, Any]]
+    categorization_stats: Dict[str, int]
+    anomalies_detected: List[Dict[str, Any]]
+    budget_analysis: Dict[str, Any]
+    weekly_advice: Dict[str, Any]
     
     # Trace & Metadata
-    agent_trace: list[dict[str, Any]]
+    agent_trace: List[Dict[str, Any]]
     fallback_mode_used: bool
 
 
 # Node Implementations
-def ingestion_node(state: AgentState) -> dict[str, Any]:
+def ingestion_node(state: AgentState) -> Dict[str, Any]:
     start_time = time.time()
     trace = list(state.get("agent_trace", []))
     
@@ -71,7 +71,7 @@ def ingestion_node(state: AgentState) -> dict[str, Any]:
     }
 
 
-def category_node(state: AgentState) -> dict[str, Any]:
+def category_node(state: AgentState) -> Dict[str, Any]:
     start_time = time.time()
     trace = list(state.get("agent_trace", []))
     parsed = state.get("parsed_transactions", [])
@@ -95,7 +95,7 @@ def category_node(state: AgentState) -> dict[str, Any]:
     }
 
 
-def anomaly_node(state: AgentState) -> dict[str, Any]:
+def anomaly_node(state: AgentState) -> Dict[str, Any]:
     start_time = time.time()
     trace = list(state.get("agent_trace", []))
     categorized = state.get("categorized_transactions", [])
@@ -119,7 +119,7 @@ def anomaly_node(state: AgentState) -> dict[str, Any]:
     }
 
 
-def budget_node(state: AgentState) -> dict[str, Any]:
+def budget_node(state: AgentState) -> Dict[str, Any]:
     start_time = time.time()
     trace = list(state.get("agent_trace", []))
     categorized = state.get("categorized_transactions", [])
@@ -144,7 +144,7 @@ def budget_node(state: AgentState) -> dict[str, Any]:
     }
 
 
-def advisor_node(state: AgentState) -> dict[str, Any]:
+def advisor_node(state: AgentState) -> Dict[str, Any]:
     start_time = time.time()
     trace = list(state.get("agent_trace", []))
     analysis = state.get("budget_analysis", {})

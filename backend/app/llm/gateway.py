@@ -2,17 +2,14 @@
 LLM Gateway abstraction layer providing Gemini API integration with prompt injection defenses,
 output validation, and deterministic rule-based fallback mode.
 """
+import re
 import json
 import logging
-import re
-from typing import Any
-
+from typing import Dict, Any, Optional
 from app.core.config import settings
 from app.llm.prompt_templates import (
-    CATEGORIZATION_SYSTEM_PROMPT,
-    CATEGORIZATION_USER_PROMPT,
-    WEEKLY_EXPLANATION_SYSTEM_PROMPT,
-    WEEKLY_EXPLANATION_USER_PROMPT,
+    CATEGORIZATION_SYSTEM_PROMPT, CATEGORIZATION_USER_PROMPT,
+    WEEKLY_EXPLANATION_SYSTEM_PROMPT, WEEKLY_EXPLANATION_USER_PROMPT
 )
 
 logger = logging.getLogger("finance_agent.llm_gateway")
@@ -46,20 +43,20 @@ class LLMGateway:
         self.api_key = settings.GEMINI_API_KEY
         self.model_name = settings.GEMINI_MODEL
         self.force_fallback = settings.NO_LLM_FALLBACK or not self.api_key or not HAS_GENAI
-
+        
         if HAS_GENAI and self.api_key:
             try:
                 genai.configure(api_key=self.api_key)
-            except (ValueError, AttributeError) as e:
+            except Exception as e:
                 logger.warning(f"Failed to configure Google GenAI client: {e}")
                 self.force_fallback = True
 
-    def categorize_merchant(self, raw_merchant: str) -> dict[str, Any]:
+    def categorize_merchant(self, raw_merchant: str) -> Dict[str, Any]:
         """
         Categorize a merchant string via LLM, falling back to rule engine if LLM fails or is disabled.
         """
         sanitized_merchant = sanitize_untrusted_text(raw_merchant)
-
+        
         if self.force_fallback:
             return self._fallback_categorize(sanitized_merchant)
 
@@ -72,22 +69,11 @@ class LLMGateway:
                 full_prompt,
                 generation_config={"response_mime_type": "application/json"}
             )
-
+            
             parsed = json.loads(response.text)
             category = parsed.get("category", "").lower()
-            valid_cats = [
-                "food",
-                "groceries",
-                "transport",
-                "bills",
-                "rent",
-                "shopping",
-                "entertainment",
-                "health",
-                "education",
-                "other",
-            ]
-
+            valid_cats = ["food", "groceries", "transport", "bills", "rent", "shopping", "entertainment", "health", "education", "other"]
+            
             if category not in valid_cats:
                 category = "other"
 
@@ -95,9 +81,9 @@ class LLMGateway:
                 "category": category,
                 "confidence": float(parsed.get("confidence", 0.7)),
                 "reason": parsed.get("reason", "AI categorized merchant."),
-                "method": "llm",
+                "method": "llm"
             }
-        except (json.JSONDecodeError, KeyError, ValueError, TypeError) as e:
+        except Exception as e:
             logger.warning(f"LLM Categorization failed for '{sanitized_merchant}': {e}. Using fallback.")
             return self._fallback_categorize(sanitized_merchant)
 
@@ -108,7 +94,7 @@ class LLMGateway:
         top_category_spend: float,
         overbudget_summary: str,
         recommendations_text: str
-    ) -> dict[str, Any]:
+    ) -> Dict[str, Any]:
         """
         Generate plain-language weekly explanation. Validates that no invented numbers appear.
         """
@@ -132,7 +118,7 @@ class LLMGateway:
                 full_prompt,
                 generation_config={"response_mime_type": "application/json"}
             )
-
+            
             parsed = json.loads(response.text)
             explanation = parsed.get("explanation", "")
             key_takeaway = parsed.get("key_takeaway", "")
@@ -148,13 +134,13 @@ class LLMGateway:
                 "disclaimer": disclaimer,
                 "method": "llm"
             }
-        except (json.JSONDecodeError, KeyError, ValueError, TypeError) as e:
+        except Exception as e:
             logger.warning(f"LLM Weekly Summary generation failed: {e}. Using template fallback.")
             return self._fallback_weekly_explanation(
                 total_spend, top_category, top_category_spend, overbudget_summary, recommendations_text
             )
 
-    def _fallback_categorize(self, merchant: str) -> dict[str, Any]:
+    def _fallback_categorize(self, merchant: str) -> Dict[str, Any]:
         """Deterministic keyword matching for offline fallback categorization."""
         m = merchant.lower()
         if any(k in m for k in ["swiggy", "zomato", "restaurant", "cafe", "diner", "food"]):
@@ -192,7 +178,7 @@ class LLMGateway:
         top_category_spend: float,
         overbudget_summary: str,
         recommendations_text: str
-    ) -> dict[str, Any]:
+    ) -> Dict[str, Any]:
         """Deterministic template builder for weekly explanation."""
         disclaimer = "This tool supports financial awareness and planning; it is not a replacement for a financial adviser."
         

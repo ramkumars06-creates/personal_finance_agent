@@ -1,9 +1,10 @@
 """
 Pydantic v2 validation and serialization schemas for REST API endpoints.
 """
+from typing import List, Optional, Dict, Any
 from datetime import date, datetime
-
-from pydantic import BaseModel, ConfigDict, EmailStr, Field
+from decimal import Decimal
+from pydantic import BaseModel, EmailStr, Field, ConfigDict
 
 
 # Auth & User Schemas
@@ -18,6 +19,12 @@ class SignupRequest(BaseModel):
 class LoginRequest(BaseModel):
     email: EmailStr
     password: str
+
+
+class GoogleAuthRequest(BaseModel):
+    id_token: Optional[str] = None
+    email: Optional[EmailStr] = None
+    name: Optional[str] = None
 
 
 class TokenResponse(BaseModel):
@@ -35,24 +42,24 @@ class UserProfileResponse(BaseModel):
     is_verified: bool
     age_confirmed: bool
     currency_symbol: str
-    monthly_income: float | None
-    savings_goal: float | None
+    monthly_income: Optional[float]
+    savings_goal: Optional[float]
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
 
 
 class UpdateProfileRequest(BaseModel):
-    monthly_income: float | None = None
-    savings_goal: float | None = None
-    currency_symbol: str | None = "Rs."
+    monthly_income: Optional[float] = None
+    savings_goal: Optional[float] = None
+    currency_symbol: Optional[str] = "Rs."
 
 
 class ConsentResponse(BaseModel):
     transaction_storage_consent: bool
     llm_processing_consent: bool
-    consent_given_at: datetime | None
-    consent_withdrawn_at: datetime | None
+    consent_given_at: Optional[datetime]
+    consent_withdrawn_at: Optional[datetime]
 
 
 class UpdateConsentRequest(BaseModel):
@@ -88,11 +95,11 @@ class AnomalyAlertResponse(BaseModel):
     alert_type: str
     severity: str
     plain_language_reason: str
-    signals_fired: list[str]
+    signals_fired: List[str]
     user_feedback: str
     created_at: datetime
-    merchant: str | None = None
-    amount: float | None = None
+    merchant: Optional[str] = None
+    amount: Optional[float] = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -129,8 +136,8 @@ class WeeklySummaryResponse(BaseModel):
     week_start_date: date
     week_end_date: date
     total_spend: float
-    category_breakdown: dict[str, float]
-    recommendations: list[RecommendationItem]
+    category_breakdown: Dict[str, float]
+    recommendations: List[RecommendationItem]
     llm_explanation: str
     is_accepted: bool
     disclaimer: str = "This tool supports financial awareness and planning; it is not a replacement for a financial adviser."
@@ -144,7 +151,7 @@ class UploadSummaryResponse(BaseModel):
     total_rows_parsed: int
     deduplicated_count: int
     uncertain_count: int
-    categories_assigned: dict[str, int]
+    categories_assigned: Dict[str, int]
     anomalies_flagged: int
 
 
@@ -159,7 +166,7 @@ class AgentTraceStep(BaseModel):
 class AgentTraceResponse(BaseModel):
     execution_id: str
     run_type: str
-    steps: list[AgentTraceStep]
+    steps: List[AgentTraceStep]
     total_duration_ms: float
     fallback_mode_used: bool
 

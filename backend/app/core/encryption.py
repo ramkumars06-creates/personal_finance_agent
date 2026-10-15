@@ -3,9 +3,8 @@ Field-level encryption and masking utilities for sensitive PII and financial fie
 """
 import base64
 import hashlib
-
-from app.core.config import settings
 from cryptography.fernet import Fernet
+from app.core.config import settings
 
 
 def _get_fernet() -> Fernet:
@@ -34,7 +33,7 @@ def decrypt_field(ciphertext: str) -> str:
         fernet = _get_fernet()
         decrypted_bytes = fernet.decrypt(ciphertext.encode('utf-8'))
         return decrypted_bytes.decode('utf-8')
-    except (ValueError, TypeError):
+    except Exception:
         # Fallback if text is unencrypted (legacy or test data)
         return ciphertext
 

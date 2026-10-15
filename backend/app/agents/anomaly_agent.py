@@ -1,9 +1,9 @@
 """
 3. Anomaly Agent: Deterministic, explainable anomaly detection with multi-signal thresholding and cold-start fallback.
 """
-from typing import Any
-
 import numpy as np
+from typing import Dict, Any, List, Tuple, Optional
+from datetime import datetime, timedelta
 
 
 class AnomalyAgent:
@@ -11,10 +11,10 @@ class AnomalyAgent:
 
     def detect_anomalies(
         self,
-        new_transactions: list[dict[str, Any]],
-        historical_transactions: list[dict[str, Any]],
-        user_feedback_history: list[dict[str, Any]] | None = None
-    ) -> list[dict[str, Any]]:
+        new_transactions: List[Dict[str, Any]],
+        historical_transactions: List[Dict[str, Any]],
+        user_feedback_history: Optional[List[Dict[str, Any]]] = None
+    ) -> List[Dict[str, Any]]:
         """
         Evaluate new transactions against user historical baselines.
         """
@@ -22,7 +22,7 @@ class AnomalyAgent:
         is_cold_start = len(historical_transactions) < 5
         
         # Build category baselines from historical data
-        cat_history: dict[str, list[float]] = {}
+        cat_history: Dict[str, List[float]] = {}
         known_merchants = set()
 
         for h in historical_transactions:

@@ -1,11 +1,12 @@
 """
 Agent Unit Tests: Ingestion, Categorization, Anomaly Detection, Budgeting, and Advisor.
 """
-from app.agents.advisor_agent import AdvisorAgent
+import pytest
+from app.agents.ingestion_agent import IngestionAgent
+from app.agents.category_agent import CategoryAgent
 from app.agents.anomaly_agent import AnomalyAgent
 from app.agents.budget_agent import BudgetAgent
-from app.agents.category_agent import CategoryAgent
-from app.agents.ingestion_agent import IngestionAgent
+from app.agents.advisor_agent import AdvisorAgent
 
 
 def test_ingestion_csv_parsing():

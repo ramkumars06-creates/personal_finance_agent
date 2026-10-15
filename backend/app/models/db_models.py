@@ -3,22 +3,12 @@ SQLAlchemy ORM Data Models representing domain entities.
 Enforces foreign key relationships and schema definitions.
 """
 import uuid
-from datetime import UTC, datetime
-
-from app.core.database import Base
+from datetime import datetime, timezone
 from sqlalchemy import (
-    JSON,
-    Boolean,
-    Column,
-    Date,
-    DateTime,
-    ForeignKey,
-    Index,
-    Numeric,
-    String,
-    Text,
+    Column, String, Boolean, Numeric, Date, DateTime, ForeignKey, Text, JSON, Index
 )
 from sqlalchemy.orm import relationship
+from app.core.database import Base
 
 
 def generate_uuid() -> str:
@@ -37,8 +27,8 @@ class User(Base):
     currency_symbol = Column(String(10), nullable=False, default="Rs.")
     monthly_income = Column(Numeric(12, 2), nullable=True)
     savings_goal = Column(Numeric(12, 2), nullable=True)
-    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(UTC))
-    updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC))
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+    updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
     # Relationships
     consents = relationship("UserConsent", back_populates="user", cascade="all, delete-orphan")
@@ -58,7 +48,7 @@ class UserConsent(Base):
     user_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     transaction_storage_consent = Column(Boolean, nullable=False, default=True)
     llm_processing_consent = Column(Boolean, nullable=False, default=True)
-    consent_given_at = Column(DateTime(timezone=True), default=lambda: datetime.now(UTC))
+    consent_given_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     consent_withdrawn_at = Column(DateTime(timezone=True), nullable=True)
 
     user = relationship("User", back_populates="consents")
@@ -93,7 +83,7 @@ class Transaction(Base):
     categorization_method = Column(String(20), nullable=False, default="rule")  # rule, llm, user
     dedup_hash = Column(String(64), nullable=False, index=True)
     is_uncertain = Column(Boolean, nullable=False, default=False)
-    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(UTC))
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
     user = relationship("User", back_populates="transactions")
     account = relationship("Account", back_populates="transactions")
@@ -112,7 +102,7 @@ class CategoryRule(Base):
     user_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     merchant_pattern = Column(String(255), nullable=False)
     target_category = Column(String(50), nullable=False)
-    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(UTC))
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
     user = relationship("User", back_populates="category_rules")
 
@@ -128,7 +118,7 @@ class UserBudget(Base):
     user_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     category = Column(String(50), nullable=False)
     weekly_target_amount = Column(Numeric(12, 2), nullable=False)
-    updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC))
+    updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
     user = relationship("User", back_populates="budgets")
 
@@ -148,7 +138,7 @@ class AnomalyAlert(Base):
     plain_language_reason = Column(Text, nullable=False)
     signals_fired = Column(JSON, nullable=False)
     user_feedback = Column(String(20), nullable=False, default="pending")  # pending, expected, suspicious
-    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(UTC))
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
     user = relationship("User", back_populates="alerts")
     transaction = relationship("Transaction", back_populates="alerts")
@@ -166,7 +156,7 @@ class WeeklySummary(Base):
     recommendations = Column(JSON, nullable=False)
     llm_explanation = Column(Text, nullable=False)
     is_accepted = Column(Boolean, nullable=False, default=False)
-    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(UTC))
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
     user = relationship("User", back_populates="weekly_summaries")
 
@@ -180,6 +170,6 @@ class AuditLog(Base):
     resource = Column(String(100), nullable=False)
     ip_address = Column(String(45), nullable=True)
     user_agent = Column(String(255), nullable=True)
-    timestamp = Column(DateTime(timezone=True), default=lambda: datetime.now(UTC))
+    timestamp = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
     user = relationship("User", back_populates="audit_logs")

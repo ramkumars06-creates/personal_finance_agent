@@ -1,6 +1,7 @@
 """
 Prompt Injection Defense Tests: Verifies untrusted transaction strings cannot override LLM instructions.
 """
+import pytest
 from app.llm.gateway import LLMGateway, sanitize_untrusted_text
 
 

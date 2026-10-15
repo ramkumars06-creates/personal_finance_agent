@@ -2,33 +2,22 @@
 Ingestion & Orchestrator API Endpoints: File Upload and LangGraph Execution Tracing.
 """
 import uuid
-from datetime import date, datetime
-from typing import Any
-
-from app.api.deps import get_current_user
-from app.core.database import get_db
-from app.core.encryption import encrypt_field
-from app.models.db_models import (
-    AnomalyAlert,
-    AuditLog,
-    Transaction,
-    User,
-    WeeklySummary,
-)
-from app.orchestrator.graph import finance_pipeline
-from app.repositories.user_scoped_repo import BudgetRepository, TransactionRepository
-from app.schemas.api_schemas import (
-    AgentTraceResponse,
-    AgentTraceStep,
-    UploadSummaryResponse,
-)
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
+from typing import Dict, Any, List
+from datetime import datetime, date
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, status
 from sqlalchemy.orm import Session
+from app.core.database import get_db
+from app.models.db_models import User, Transaction, UserBudget, AnomalyAlert, WeeklySummary, AuditLog
+from app.schemas.api_schemas import UploadSummaryResponse, AgentTraceResponse, AgentTraceStep
+from app.orchestrator.graph import finance_pipeline
+from app.core.encryption import encrypt_field
+from app.repositories.user_scoped_repo import TransactionRepository, BudgetRepository
+from app.api.deps import get_current_user
 
 router = APIRouter(tags=["Ingestion & Pipeline"])
 
 # In-memory execution trace store (can also be persisted in DB)
-EXECUTION_TRACES: dict[str, dict[str, Any]] = {}
+EXECUTION_TRACES: Dict[str, Dict[str, Any]] = {}
 
 
 @router.post("/ingestion/upload", response_model=UploadSummaryResponse, status_code=status.HTTP_201_CREATED)
@@ -94,10 +83,10 @@ async def upload_bank_statement(
     # Run LangGraph Pipeline
     try:
         final_state = finance_pipeline.invoke(initial_state)
-    except (ValueError, TypeError, KeyError, RuntimeError) as e:
+    except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail=f"Error executing multi-agent pipeline: {e!s}"
+            detail=f"Error executing multi-agent pipeline: {str(e)}"
         )
 
     # Store trace execution in memory

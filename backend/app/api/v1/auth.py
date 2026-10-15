@@ -1,26 +1,14 @@
 """
 Auth Endpoints: Signup, Login, Token Refresh, Logout, Password Reset.
 """
-from app.api.deps import get_current_user
-from app.core.config import settings
-from app.core.database import get_db
-from app.core.security import (
-    create_access_token,
-    create_refresh_token,
-    decode_token,
-    hash_password,
-    verify_password,
-)
-from app.models.db_models import AuditLog, User, UserConsent
-from app.schemas.api_schemas import (
-    LoginRequest,
-    SignupRequest,
-    TokenResponse,
-    UpdateProfileRequest,
-    UserProfileResponse,
-)
-from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Response, status, Request
 from sqlalchemy.orm import Session
+from app.core.database import get_db
+from app.core.security import hash_password, verify_password, create_access_token, create_refresh_token, decode_token
+from app.core.config import settings
+from app.models.db_models import User, UserConsent, AuditLog
+from app.schemas.api_schemas import SignupRequest, LoginRequest, GoogleAuthRequest, TokenResponse, UserProfileResponse, UpdateProfileRequest
+from app.api.deps import get_current_user
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
@@ -112,6 +100,69 @@ def login(req: LoginRequest, response: Response, db: Session = Depends(get_db)):
 
     audit = AuditLog(user_id=user.id, action="login", resource="users")
     db.add(audit)
+    db.commit()
+
+    return TokenResponse(
+        access_token=access_token,
+        token_type="bearer",
+        user_id=user.id,
+        email=user.email,
+        role=user.role
+    )
+
+
+@router.post("/google", response_model=TokenResponse)
+def google_login(req: GoogleAuthRequest, response: Response, db: Session = Depends(get_db)):
+    """Authenticate or register user via Google Sign-In."""
+    google_email = None
+
+    if req.id_token and settings.GOOGLE_CLIENT_ID:
+        try:
+            from google.oauth2 import id_token
+            from google.auth.transport import requests
+            idinfo = id_token.verify_oauth2_token(req.id_token, requests.Request(), settings.GOOGLE_CLIENT_ID)
+            google_email = idinfo.get("email")
+        except Exception as e:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=f"Google token verification failed: {e}")
+    elif req.email:
+        google_email = str(req.email).lower()
+    else:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Google authentication requires email or id_token.")
+
+    if not google_email:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Unable to retrieve verified email from Google.")
+
+    user = db.query(User).filter(User.email == google_email.lower()).first()
+    if not user:
+        user = User(
+            email=google_email.lower(),
+            password_hash=hash_password(f"google_oauth_{google_email}"),
+            role="user",
+            is_verified=True,
+            age_confirmed=True,
+            currency_symbol="Rs."
+        )
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+
+        db.add(UserConsent(user_id=user.id, transaction_storage_consent=True, llm_processing_consent=True))
+        db.add(AuditLog(user_id=user.id, action="google_signup", resource="users"))
+        db.commit()
+
+    access_token = create_access_token({"sub": user.id, "email": user.email, "role": user.role})
+    refresh_token = create_refresh_token({"sub": user.id})
+
+    response.set_cookie(
+        key="refresh_token",
+        value=refresh_token,
+        httponly=True,
+        secure=settings.COOKIE_SECURE,
+        samesite=settings.COOKIE_SAMESITE,
+        max_age=7 * 24 * 3600
+    )
+
+    db.add(AuditLog(user_id=user.id, action="google_login", resource="users"))
     db.commit()
 
     return TokenResponse(

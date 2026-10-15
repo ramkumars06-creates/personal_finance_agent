@@ -1,14 +1,13 @@
 """
 IDOR Security Verification Tests: Proves tenant isolation and verifies User A cannot access User B's records.
 """
-from datetime import date
-
 import pytest
-from app.core.database import Base
-from app.models.db_models import Transaction, User
-from app.repositories.user_scoped_repo import TransactionRepository
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from app.core.database import Base
+from app.models.db_models import User, Transaction
+from app.repositories.user_scoped_repo import TransactionRepository
+from datetime import date
 
 
 @pytest.fixture
